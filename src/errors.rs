@@ -2,36 +2,40 @@ use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum TinyLangError {
-    #[error("parser error {0:?}")]
+    #[error("{0}")]
     ParserError(#[from] ParseError),
-    #[error("runtime error {0:?}")]
+    #[error("{0}")]
     RuntimeError(#[from] RuntimeError),
 }
 
 #[derive(Debug, Error, PartialEq)]
 pub enum RuntimeError {
-    #[error("generic error {0:?}")]
+    #[error("{0}")]
     Generic(String),
-    #[error("variable not defined {0:?}")]
+    #[error("variable '{0}' is not defined")]
     VariableNotDefined(String),
-    #[error("Invalid Lang Type")]
+    #[error("type mismatch: cannot apply this operator to the given types")]
     InvalidLangType,
-    #[error("Identifier is not a Number")]
+    #[error("expected a number")]
     ExpectingNumber,
-    #[error("Identifier is Nil")]
-    IdentifierIsNil,
-    #[error("conditions on a if must result in a bool")]
+    #[error("'if' condition must evaluate to a bool")]
     ExpectingBool,
+    #[error("'for' loop expected a Vec to iterate over, found {0}")]
+    ExpectedVec(String),
+    #[error("property access with '.' requires an Object, found {0}")]
+    ExpectedObject(String),
+    #[error("'{0}' is not callable")]
+    NotAFunction(String),
 }
 
 #[derive(Debug, Error, PartialEq)]
 pub enum ParseError {
-    #[error("Error while parsing code {0:?}")]
+    #[error("{0}")]
     Generic(String),
-    #[error("Invalid node type {0:?}")]
+    #[error("{0}")]
     InvalidNode(String),
-    #[error("There is no matching if for the else")]
+    #[error("'else' without a matching 'if'")]
     NoMatchingIf,
-    #[error("There is no matching end for the loop")]
+    #[error("'end' without a matching 'if' or 'for'")]
     NoMatchingFor,
 }

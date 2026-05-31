@@ -95,7 +95,13 @@ impl Loop<'_> {
     fn replay_loop<'a>(self, state: &mut State) -> Result<Cow<'a, str>, TinyLangError> {
         let mut output = String::new();
         let mut runtime = Runtime::new();
-        let Loop { variable_name, vector, pairs, old_state_for_var, .. } = self;
+        let Loop {
+            variable_name,
+            vector,
+            pairs,
+            old_state_for_var,
+            ..
+        } = self;
 
         for item in vector {
             *state.get_mut(variable_name.as_str()).unwrap() = item;
@@ -304,7 +310,11 @@ fn visit_for<'a>(
     // because that means we should not execute dynamic statements
     let original_value: Vec<TinyLangType> = match (original_value, ignore_error) {
         (TinyLangType::Vec(v), _) => v,
-        (_, false) => return Err(TinyLangError::RuntimeError(RuntimeError::InvalidLangType)),
+        (found, false) => {
+            return Err(TinyLangError::RuntimeError(RuntimeError::ExpectedVec(
+                found.to_string(),
+            )))
+        }
         (_, true) => Vec::new(),
     };
 
@@ -364,7 +374,9 @@ fn visit_function_call(
     mut nodes: Pairs<Rule>,
     state: &mut State,
 ) -> Result<TinyLangType, TinyLangError> {
-    let function = visit_identifier(nodes.next().unwrap(), state)?;
+    let func_node = nodes.next().unwrap();
+    let func_name = func_node.as_span().as_str().to_string();
+    let function = visit_identifier(func_node, state)?;
     let mut params = Vec::new();
 
     for node in nodes {
@@ -374,8 +386,9 @@ fn visit_function_call(
 
     match function {
         TinyLangType::Function(f) => Ok(f(params, state)),
-        TinyLangType::Nil => Err(TinyLangError::RuntimeError(RuntimeError::IdentifierIsNil)),
-        _ => Err(TinyLangError::RuntimeError(RuntimeError::InvalidLangType)),
+        _ => Err(TinyLangError::RuntimeError(RuntimeError::NotAFunction(
+            func_name,
+        ))),
     }
 }
 
@@ -391,7 +404,11 @@ fn visit_dot(mut pairs: Pairs<Rule>, state: &mut State) -> Result<TinyLangType, 
     for p in pairs {
         object = match object {
             TinyLangType::Object(ref mut s) => visit_identifier(p, s)?,
-            _ => return Err(TinyLangError::RuntimeError(RuntimeError::InvalidLangType)),
+            other => {
+                return Err(TinyLangError::RuntimeError(RuntimeError::ExpectedObject(
+                    other.to_string(),
+                )))
+            }
         };
     }
     Ok(object)
