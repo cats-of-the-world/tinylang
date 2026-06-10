@@ -149,6 +149,10 @@ pub fn eval(input: &str, mut state: State) -> Result<String, TinyLangError> {
         output.push_str(&process_pair(pair, &mut state, &mut runtime)?);
     }
 
+    if !runtime.needs_end.is_empty() {
+        return Err(ParseError::MissingEnd.into());
+    }
+
     Ok(output)
 }
 
@@ -174,6 +178,9 @@ fn process_pair<'a>(
             if runtime.is_output_enabled() {
                 l.replay_loop(state)?
             } else {
+                // the loop body was never replayed, but visit_for already
+                // assigned the first item to the loop variable: undo that
+                state.insert(l.variable_name, l.old_state_for_var);
                 EMPTY_STRING_COW
             }
         }
@@ -252,7 +259,10 @@ fn visit_dynamic<'a>(
                     Some(b) => b,
                     None => return Err(TinyLangError::ParserError(ParseError::NoMatchingIf)),
                 };
-                runtime.should_output.push(!last_if);
+                // the else branch only outputs if its `if` branch did not
+                // and the enclosing scope itself is outputting
+                let parent_enabled = runtime.is_output_enabled();
+                runtime.should_output.push(!last_if && parent_enabled);
             }
             (Rule::flow_end, _) => {
                 let rule = match runtime.needs_end.pop() {
@@ -420,7 +430,8 @@ fn visit_op_exp(pairs: Pairs<Rule>, state: &mut State) -> Result<TinyLangType, T
             Rule::dot => visit_dot(primary.into_inner(), state),
             Rule::literal => visit_literal(primary.into_inner()),
             Rule::identifier => visit_identifier(primary, state),
-            Rule::op_exp => visit_op_exp(primary.into_inner(), state), // from "(" ~ op_exp ~ ")"
+            Rule::exp => visit_exp(primary.into_inner(), state), // from "(" ~ exp ~ ")"
+            Rule::op_exp => visit_op_exp(primary.into_inner(), state),
             _ => unreachable!(),
         })
         .map_prefix(|op, rhs| match op.as_rule() {

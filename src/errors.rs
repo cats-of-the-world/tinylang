@@ -38,4 +38,6 @@ pub enum ParseError {
     NoMatchingIf,
     #[error("'end' without a matching 'if' or 'for'")]
     NoMatchingFor,
+    #[error("'if' or 'for' without a matching 'end'")]
+    MissingEnd,
 }
