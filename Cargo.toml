@@ -28,3 +28,7 @@ criterion = "0.8.2"
 [[bench]]
 name = "basic"
 harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1

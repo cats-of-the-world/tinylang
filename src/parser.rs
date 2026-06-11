@@ -135,7 +135,7 @@ impl Loop<'_> {
 /// Check `crate::types::TinyLangTypes` for details of all the types build-in the language.
 pub fn eval(input: &str, mut state: State) -> Result<String, TinyLangError> {
     let pairs = parse(input)?.next().unwrap().into_inner();
-    let mut output = String::new();
+    let mut output = String::with_capacity(input.len());
 
     let mut runtime = Runtime::new();
 
