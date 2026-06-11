@@ -582,7 +582,7 @@ dependencies = [
 
 [[package]]
 name = "tinylang"
-version = "0.3.4"
+version = "0.5.4"
 dependencies = [
  "criterion",
  "gloo-utils",
