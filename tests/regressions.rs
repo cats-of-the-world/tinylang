@@ -13,7 +13,7 @@ fn else_inside_disabled_if() {
 #[test]
 fn standalone_negation() {
     let result = eval("{{ -1 }}", HashMap::default());
-    println!("standalone neg: {:?}", result);
+    println!("standalone neg: {result:?}");
     assert_eq!("-1", result.unwrap().as_str());
 }
 
@@ -23,7 +23,7 @@ fn standalone_negation_identifier() {
         "{{ -a }}",
         HashMap::from([("a".into(), TinyLangType::Numeric(5.0))]),
     );
-    println!("neg ident: {:?}", result);
+    println!("neg ident: {result:?}");
     assert_eq!("-5", result.unwrap().as_str());
 }
 
@@ -84,7 +84,7 @@ fn for_inside_disabled_if_preserves_var() {
 fn missing_end() {
     let template = "{% if true %}hello";
     let result = eval(template, HashMap::default());
-    println!("missing end: {:?}", result);
+    println!("missing end: {result:?}");
     assert!(result.is_err());
 }
 

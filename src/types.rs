@@ -111,9 +111,9 @@ impl Neg for TinyLangType {
 impl Display for TinyLangType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TinyLangType::Numeric(e) => write!(f, "{}", e),
-            TinyLangType::String(e) => write!(f, "{}", e),
-            TinyLangType::Bool(e) => write!(f, "{}", e),
+            TinyLangType::Numeric(e) => write!(f, "{e}"),
+            TinyLangType::String(e) => write!(f, "{e}"),
+            TinyLangType::Bool(e) => write!(f, "{e}"),
             TinyLangType::Nil => write!(f, "Nil"),
             TinyLangType::Function(_) => write!(f, "Function"),
             TinyLangType::Object(_) => write!(f, "Object"),
@@ -122,11 +122,11 @@ impl Display for TinyLangType {
     }
 }
 
-impl TryInto<f64> for TinyLangType {
+impl TryFrom<TinyLangType> for f64 {
     type Error = RuntimeError;
 
-    fn try_into(self) -> Result<f64, Self::Error> {
-        match self {
+    fn try_from(value: TinyLangType) -> Result<Self, Self::Error> {
+        match value {
             TinyLangType::Numeric(f) => Ok(f),
             _ => Err(RuntimeError::InvalidLangType),
         }

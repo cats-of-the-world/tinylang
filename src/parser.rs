@@ -1,6 +1,7 @@
+use pest::Parser;
 use pest::iterators::{Pair, Pairs};
 use pest::pratt_parser::{Assoc, Op, PrattParser};
-use pest::Parser;
+use pest_derive::Parser;
 use std::borrow::Cow;
 use std::sync::LazyLock;
 use std::vec::IntoIter;
@@ -218,7 +219,7 @@ fn visit_generic<'a>(
         (Rule::invalid, _) => {
             return Err(TinyLangError::ParserError(ParseError::InvalidNode(
                 format!("Invalid exp: {}", pair.as_span().as_str()),
-            )))
+            )));
         }
         (_, false) => EMPTY_STRING_COW,
         _ => unreachable!(),
@@ -296,10 +297,9 @@ fn visit_dynamic<'a>(
             (_, false) => (),
             _ => {
                 return Err(ParseError::InvalidNode(format!(
-                    "dynamic statement does not accept {:?}",
-                    dynamic
+                    "dynamic statement does not accept {dynamic:?}"
                 ))
-                .into())
+                .into());
             }
         };
     }
@@ -323,7 +323,7 @@ fn visit_for<'a>(
         (found, false) => {
             return Err(TinyLangError::RuntimeError(RuntimeError::ExpectedVec(
                 found.to_string(),
-            )))
+            )));
         }
         (_, true) => Vec::new(),
     };
@@ -353,10 +353,9 @@ fn visit_print(mut node: Pairs<Rule>, state: &mut State) -> Result<String, TinyL
         Rule::exp => visit_exp(child.into_inner(), state)?,
         _ => {
             return Err(ParseError::InvalidNode(format!(
-                "print statement does not accept {:?}",
-                child
+                "print statement does not accept {child:?}"
             ))
-            .into())
+            .into());
         }
     };
 
@@ -373,8 +372,7 @@ fn visit_exp(node: Pairs<Rule>, state: &mut State) -> Result<TinyLangType, TinyL
         Rule::function_call => visit_function_call(first_child.into_inner(), state),
         Rule::exp => visit_exp(first_child.into_inner(), state),
         _ => Err(ParseError::InvalidNode(format!(
-            "visit_exp was called with an invalid node {:?}",
-            first_child
+            "visit_exp was called with an invalid node {first_child:?}"
         ))
         .into()),
     }
@@ -417,7 +415,7 @@ fn visit_dot(mut pairs: Pairs<Rule>, state: &mut State) -> Result<TinyLangType, 
             other => {
                 return Err(TinyLangError::RuntimeError(RuntimeError::ExpectedObject(
                     other.to_string(),
-                )))
+                )));
             }
         };
     }
@@ -495,8 +493,7 @@ fn visit_literal(node: Pairs<Rule>) -> Result<TinyLangType, TinyLangError> {
         }
         Rule::nil => Ok(TinyLangType::Nil),
         _ => Err(ParseError::InvalidNode(format!(
-            "visit_lang_types was called with an invalid node {:?}",
-            child
+            "visit_lang_types was called with an invalid node {child:?}"
         ))
         .into()),
     }
@@ -747,7 +744,7 @@ mod test {
             "{{ f(1) }}",
             HashMap::from([(
                 "f".into(),
-                TinyLangType::Function(|args, _state| args.get(0).unwrap().clone()),
+                TinyLangType::Function(|args, _state| args.first().unwrap().clone()),
             )]),
         )
         .unwrap();
@@ -761,7 +758,7 @@ mod test {
             "{% f(1) %}",
             HashMap::from([(
                 "f".into(),
-                TinyLangType::Function(|args, _state| args.get(0).unwrap().clone()),
+                TinyLangType::Function(|args, _state| args.first().unwrap().clone()),
             )]),
         )
         .unwrap();
