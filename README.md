@@ -20,7 +20,7 @@ into the output. `{% ... %}` is *dynamic*: it does something, like deciding
 whether a chunk of the template shows up at all, but it does not print itself.
 Everything outside of both is just text, copied through verbatim.
 
-## The one rule that surprises people
+## State
 
 You cannot assign to variables from inside a template. There is no `{% a = 2 %}`.
 
